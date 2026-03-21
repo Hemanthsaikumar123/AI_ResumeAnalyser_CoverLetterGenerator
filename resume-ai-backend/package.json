@@ -4,8 +4,8 @@
   "description": "Express server for AI Resume Analyser",
   "main": "server-new.js",
   "scripts": {
-    "start": "node server-new.js",
-    "dev": "node server-new.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

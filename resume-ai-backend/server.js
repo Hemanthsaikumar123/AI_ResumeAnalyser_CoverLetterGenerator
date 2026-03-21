@@ -12,9 +12,9 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Import routes
-const healthRoutes = require('./routes/health');
-const uploadRoutes = require('./routes/upload');
-const analysisRoutes = require('./routes/analysis');
+const healthRoutes = require('./routes/healthRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
+const analysisRoutes = require('./routes/analysisRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,9 +29,7 @@ app.use(express.json());
 // Routes
 app.use('/health', healthRoutes);
 app.use('/upload', uploadRoutes);
-app.use('/upload-and-analyze', uploadRoutes); // Backward compatibility
-app.use('/', analysisRoutes); // Legacy endpoints: /parse, /parse-job, /analyze
-app.use('/ai', analysisRoutes); // AI similarity endpoint
+app.use('/upload-and-analyze', analysisRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
