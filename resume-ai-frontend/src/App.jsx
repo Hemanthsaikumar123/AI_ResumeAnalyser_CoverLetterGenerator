@@ -20,6 +20,7 @@ function App() {
   const [coverLetterResult, setCoverLetterResult] = useState(null)
   const [coverLetterLoading, setCoverLetterLoading] = useState(false)
   const [coverLetterTone, setCoverLetterTone] = useState('professional')
+  const [coverLetterWordingSize, setCoverLetterWordingSize] = useState('medium')
   const [coverLetterError, setCoverLetterError] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
 
@@ -65,7 +66,7 @@ function App() {
       formData.append('file', coverLetterResumeFile)
       const extractResponse = await axios.post('http://localhost:5000/upload/extract-text', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
       const resumeText = extractResponse.data.extractedText
-      const response = await axios.post('http://localhost:5000/upload/generate-cover-letter', { resumeText, jobDescription: coverLetterJobDesc, tone: coverLetterTone })
+      const response = await axios.post('http://localhost:5000/upload/generate-cover-letter', { resumeText, jobDescription: coverLetterJobDesc, tone: coverLetterTone, wordingSize: coverLetterWordingSize })
       setCoverLetterResult(response.data)
     } catch (err) {
       setCoverLetterError(err.response?.data?.error || 'An error occurred during cover letter generation')
@@ -86,7 +87,7 @@ function App() {
     try {
       const response = await axios.post('http://localhost:5000/upload/download-cover-letter-pdf', {
         coverLetterText: coverLetterResult.coverLetter,
-        metadata: { date: new Date().toLocaleDateString(), tone: coverLetterTone, generatedAt: coverLetterResult.metadata?.generatedAt }
+        metadata: { date: new Date().toLocaleDateString(), tone: coverLetterTone, wordingSize: coverLetterWordingSize, generatedAt: coverLetterResult.metadata?.generatedAt }
       }, { responseType: 'blob', headers: { 'Content-Type': 'application/json' } })
       const blob = new Blob([response.data], { type: 'application/pdf' })
       const url = window.URL.createObjectURL(blob)
@@ -314,6 +315,16 @@ function App() {
                       </button>
                     ))}
                   </div>
+
+                  <span className="field-label" style={{ marginTop: 20, display: 'block' }}>Wording Size</span>
+                  <div className="tone-grid">
+                    {[['short', '150-250 words'], ['medium', '250-400 words'], ['long', '400-550 words']].map(([size, label]) => (
+                      <button key={size} className={`tone-chip ${coverLetterWordingSize === size ? 'tone-active' : ''}`}
+                        onClick={() => setCoverLetterWordingSize(size)} disabled={coverLetterLoading} title={label}>
+                        {size.charAt(0).toUpperCase() + size.slice(1)}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="form-col form-col-grow">
                   <label className="field-label" htmlFor="cl-job-desc">Job Description</label>
@@ -334,6 +345,7 @@ function App() {
                   <div className="cl-meta">
                     <span className="meta-pill meta-blue">{coverLetterResult.metadata?.wordCount || 0} words</span>
                     <span className="meta-pill meta-purple">{coverLetterResult.metadata?.tone || coverLetterTone}</span>
+                    <span className="meta-pill meta-green">{coverLetterResult.metadata?.wordingSize || coverLetterWordingSize}</span>
                   </div>
                 </div>
                 <button className="btn-ghost" onClick={() => setCoverLetterResult(null)}>↩ Edit & Regenerate</button>

@@ -1,5 +1,5 @@
 const resumeParserService  = require('../services/resumeParseService');
-const coverLetterService   = require('../services/coverLetterService');
+const coverLetterService   = require('../services/coverletterService');
 const pdfService           = require('../services/pdfService');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,26 +51,30 @@ const extractText = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 /**
  * POST /upload/generate-cover-letter
- * Body  : application/json  { resumeText, jobDescription, tone }
+ * Body  : application/json  { resumeText, jobDescription, tone, wordingSize }
  * Returns generated cover letter text + metadata.
  */
 const generateCoverLetter = async (req, res) => {
   try {
-    const { resumeText, jobDescription, tone = 'professional' } = req.body;
+    const { resumeText, jobDescription, tone = 'professional', wordingSize = 'medium' } = req.body;
 
     if (!resumeText?.trim() || !jobDescription?.trim()) {
       return res.status(400).json({ error: 'resumeText and jobDescription are required' });
     }
 
     const validTones = ['professional', 'enthusiastic', 'concise', 'formal'];
+    const validSizes = ['short', 'medium', 'long'];
     if (!validTones.includes(tone.toLowerCase())) {
       return res.status(400).json({ error: `tone must be one of: ${validTones.join(', ')}` });
     }
+    if (!validSizes.includes(wordingSize.toLowerCase())) {
+      return res.status(400).json({ error: `wordingSize must be one of: ${validSizes.join(', ')}` });
+    }
 
     console.log('=== Cover Letter Generation ===');
-    console.log(`Resume: ${resumeText.length} chars | Job: ${jobDescription.length} chars | Tone: ${tone}`);
+    console.log(`Resume: ${resumeText.length} chars | Job: ${jobDescription.length} chars | Tone: ${tone} | Size: ${wordingSize}`);
 
-    const coverLetter = await coverLetterService.generateCoverLetter(resumeText, jobDescription, tone);
+    const coverLetter = await coverLetterService.generateCoverLetter(resumeText, jobDescription, tone, wordingSize);
 
     console.log('Generated', coverLetter.length, 'chars');
     console.log('=== End Cover Letter Generation ===\n');
@@ -81,6 +85,7 @@ const generateCoverLetter = async (req, res) => {
       coverLetter,
       metadata: {
         tone,
+        wordingSize,
         wordCount:      coverLetter.split(/\s+/).length,
         characterCount: coverLetter.length,
         generatedAt:    new Date().toISOString(),
@@ -95,7 +100,7 @@ const generateCoverLetter = async (req, res) => {
     }
     res.status(500).json({ error: 'Cover letter generation failed', details: error.message });
   }
-};
+;}
 
 // ─────────────────────────────────────────────────────────────────────────────
 /**

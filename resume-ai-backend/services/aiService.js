@@ -108,7 +108,24 @@ Respond ONLY with raw JSON — no markdown, no backticks, no extra text.
 }
 
 // ── Cover Letter Generation ───────────────────────────────────────────────
-async function callAICoverLetter(resumeText, jobDescription, tone = 'professional') {
+async function callAICoverLetter(resumeText, jobDescription, tone = 'professional', wordingSize = 'medium') {
+  // Define word count ranges for each size
+  const sizeRanges = {
+    short:  '150-250',
+    medium: '250-400',
+    long:   '400-550'
+  };
+  const safeSize = ['short', 'medium', 'long'].includes(wordingSize) ? wordingSize : 'medium';
+  const wordRange = sizeRanges[safeSize];
+
+  // Adjust body detail level based on wording size
+  const bodyInstructions = {
+    short:  'highlight 1-2 key matching skills/achievements',
+    medium: 'highlight 2-3 matching skills/achievements',
+    long:   'highlight 3-4 matching skills/achievements with more detail'
+  };
+  const bodyGuide = bodyInstructions[safeSize];
+
   const prompt = `
 You are an expert career assistant. Generate a personalized ${tone} cover letter.
 
@@ -125,11 +142,11 @@ ${jobDescription}
 Requirements:
 - Start with "Dear Hiring Manager,"
 - Opening: express enthusiasm, reference the specific role
-- Body: highlight 2-3 matching skills/achievements from the resume
+- Body: ${bodyGuide} from the resume
 - Explain fit based on the job's specific requirements
-- Closing: polite call-to-action
+- Closing: polite ending based on the ${tone} and showing confidence in the candidate's suitability
 - Tone: ${tone}
-- Length: 250-400 words
+- Length: ${wordRange} words
 - Be specific — no generic filler language
 
 Return ONLY the cover letter text. No markdown, no extra commentary.
